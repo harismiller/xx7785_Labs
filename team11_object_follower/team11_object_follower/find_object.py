@@ -59,11 +59,24 @@ class ObjectTracker(Node):
 			# Display the image in a window
             self.show_image(self._imgBGR)
         
-        
+        height, width = self._imgBGR.shape[:2]
+        # Our operations on the self._imgBGR come here
+        hsv = cv2.cvtColor(self._imgBGR, cv2.COLOR_BGR2HSV)
+        lower_hsv = np.array([48, 69, 71])
+        higher_hsv = np.array([145, 212, 214])
+        # Apply the cv2.inrange method to create a mask
+        mask = cv2.inRange(hsv, lower_hsv, higher_hsv)
+        mask = cv2.GaussianBlur(mask,(5,5),0)
+
+        circles = cv2.HoughCircles(mask, cv2.HOUGH_GRADIENT, 1, 200, param1=50, param2=20, minRadius=20, maxRadius=900)
+        # circles = cv2.HoughCircles(mask, cv2.HOUGH_GRADIENT, 1, 200, param1=50, param2=20,minRadius=20, maxRadius=800)
         msg = Point()
-        msg.x = 0.0
-        msg.y = 0.0
-        msg.z = 0.0
+        if not (circles is None):
+            circles = np.uint16(np.around(circles))
+            for i in circles[0,:]:
+                msg.x = i[0] - width
+                msg.y = i[0] - height
+                
         self._point_publisher.publish(msg)
 
     def show_image(self, img):
@@ -73,11 +86,6 @@ class ObjectTracker(Node):
 
     def get_user_input(self):
         return self._user_input
-
-class ImagePublisher(Node):
-
-    def __init__(self):
-        super().__init__('image_publisher')
 
 def main():
     rclpy.init()
