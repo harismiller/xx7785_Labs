@@ -21,7 +21,8 @@ setup(
     entry_points={
         'console_scripts': [
             'rotate_robot = team11_object_follower.rotate_robot:main',
-            'find_object = team11_object_follower.find_object:main'
+            'find_object = team11_object_follower.find_object:main',
+            # 'follow_obj = team11_object_follower.follow_obj.py:generate_launch_description'
         ],
     },
 )
