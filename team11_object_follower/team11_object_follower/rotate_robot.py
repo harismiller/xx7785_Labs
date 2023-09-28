@@ -8,7 +8,6 @@ import sys
 
 import numpy as np
 
-
 class RobotRotation(Node):
 
     def __init__(self):
