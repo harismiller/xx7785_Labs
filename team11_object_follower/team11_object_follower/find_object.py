@@ -1,3 +1,4 @@
+#!/usr/bin/python
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import CompressedImage
@@ -55,11 +56,10 @@ class ObjectTracker(Node):
     def _image_callback(self, CompressedImage):	
 		# The "CompressedImage" is transformed to a color image in BGR space and is store in "_imgBGR"
         self._imgBGR = CvBridge().compressed_imgmsg_to_cv2(CompressedImage, "bgr8")
-        if(self._display_image):
-			# Display the image in a window
-            self.show_image(self._imgBGR)
+        
         
         height, width = self._imgBGR.shape[:2]
+        # print(height,width)
         # Our operations on the self._imgBGR come here
         hsv = cv2.cvtColor(self._imgBGR, cv2.COLOR_BGR2HSV)
         lower_hsv = np.array([48, 69, 71])
@@ -68,16 +68,23 @@ class ObjectTracker(Node):
         mask = cv2.inRange(hsv, lower_hsv, higher_hsv)
         mask = cv2.GaussianBlur(mask,(5,5),0)
 
-        circles = cv2.HoughCircles(mask, cv2.HOUGH_GRADIENT, 1, 200, param1=50, param2=20, minRadius=20, maxRadius=900)
+        circles = cv2.HoughCircles(mask, cv2.HOUGH_GRADIENT, 1, 200, param1=50, param2=20, minRadius=15, maxRadius=100)
         # circles = cv2.HoughCircles(mask, cv2.HOUGH_GRADIENT, 1, 200, param1=50, param2=20,minRadius=20, maxRadius=800)
         msg = Point()
         if not (circles is None):
             circles = np.uint16(np.around(circles))
             for i in circles[0,:]:
-                msg.x = i[0] - width
-                msg.y = i[0] - height
+                print(i[0]- width/2,i[1])
+                msg.x = float(i[0] - width/2)
+                msg.y = float(i[1] - height/2)
+                cv2.circle(self._imgBGR,(i[0],i[1]),i[2],(0,255,0),2)
+                cv2.circle(self._imgBGR,(i[0],i[1]),2,(0,0,255),3)
+                print(i[2],'radius')
                 
         self._point_publisher.publish(msg)
+        if(self._display_image):
+			# Display the image in a window
+            self.show_image(self._imgBGR)
 
     def show_image(self, img):
         cv2.imshow(self._titleOriginal, img)

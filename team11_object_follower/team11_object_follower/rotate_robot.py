@@ -1,3 +1,4 @@
+#!/usr/bin/python
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import CompressedImage
@@ -15,7 +16,7 @@ class RobotRotation(Node):
 
         self._point_subscriber = self.create_subscription(
                 Point,
-                'objTracker',
+                'objCenter',
                 self._rotation_callback,
                 10)
         self._vel_publish = self.create_publisher(
@@ -23,13 +24,15 @@ class RobotRotation(Node):
                 '/cmd_vel',
                 5)
     
-    def _rotation_callback(self, Point):
+    def _rotation_callback(self, point):
         msg = Twist()
-        if Point.x > 0:
-            msg.angular = Vector3(5,0,0)
-        elif Point.x < 0:
-            msg.angular = Vector3(-5,0,0)
-        msg.angular
+        if point.x > 20:
+            msg.angular.z = -0.3
+        elif point.x < -20:
+            msg.angular.z = 0.3
+        else:
+            msg.angular.x = 0.0
+        print(msg)
         self._vel_publish.publish(msg)
 
 def main():
