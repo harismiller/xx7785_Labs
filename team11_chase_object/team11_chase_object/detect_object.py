@@ -83,8 +83,7 @@ class ObjectTracker(Node):
                 cv2.circle(self._imgBGR,(i[0],i[1]),i[2],(0,255,0),2)
                 cv2.circle(self._imgBGR,(i[0],i[1]),2,(0,0,255),3)
                 print(i[2],'radius')
-                
-        self._point_publisher.publish(msg)
+                self._point_publisher.publish(msg)
         if(self._display_image):
 			# Display the image in a window
             self.show_image(self._imgBGR)
