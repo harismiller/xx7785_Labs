@@ -1,3 +1,4 @@
+#!/usr/bin/python
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import LaserScan
@@ -14,9 +15,10 @@ class ObjectFinder(Node):
         
         self.obj_angle = 0.0
         self.scan = LaserScan()
-        # scan.ranges = []
+        self.scan.ranges = [0.0]*360
         # self.scan = scan
-        self.DEFAULT_RADIAL_DIST = 0.0
+        self.radial_dist = 5.0
+        # self.DEFAULT_RADIAL_DIST = 0.0
 
         super().__init__('object_finder')
         #Set up QoS Profiles for passing images over WiFi
@@ -48,12 +50,12 @@ class ObjectFinder(Node):
 
         msg = Pose2D()
         index = int((self.obj_angle+(2*math.pi))%(2*math.pi))
-        radial_dist = self.DEFAULT_RADIAL_DIST
+        # radial_dist = self.DEFAULT_RADIAL_DIST
         if not math.isnan(self.scan.ranges[index]):
-            radial_dist = self.scan.ranges[index]
-        msg.x = radial_dist
+            self.radial_dist = self.scan.ranges[index]
+        msg.x = self.radial_dist
         msg.theta = self.obj_angle
-        print(msg)
+        # print(msg)
         self._location_publish.publish(msg)
 
     def _finder_callback(self, scan):

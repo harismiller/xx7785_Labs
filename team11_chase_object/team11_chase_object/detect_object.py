@@ -77,12 +77,12 @@ class ObjectTracker(Node):
         if not (circles is None):
             circles = np.uint16(np.around(circles))
             for i in circles[0,:]:
-                print(i[0]- width/2,i[1])
+                # print(i[0]- width/2,i[1])
                 msg.x = float(i[0] - width/2)
                 msg.y = float(i[1] - height/2)
                 cv2.circle(self._imgBGR,(i[0],i[1]),i[2],(0,255,0),2)
                 cv2.circle(self._imgBGR,(i[0],i[1]),2,(0,0,255),3)
-                print(i[2],'radius')
+                # print(i[2],'radius')
                 self._point_publisher.publish(msg)
         if(self._display_image):
 			# Display the image in a window
