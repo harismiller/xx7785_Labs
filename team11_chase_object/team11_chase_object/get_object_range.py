@@ -47,12 +47,14 @@ class ObjectFinder(Node):
     
     def _point_callback(self, point):
         self.obj_angle = math.atan2(point.x,250)
-
+        print(point.x,self.obj_angle)
         msg = Pose2D()
         index = int((self.obj_angle+(2*math.pi))%(2*math.pi))
+        print(index)
         # radial_dist = self.DEFAULT_RADIAL_DIST
         if not math.isnan(self.scan.ranges[index]):
             self.radial_dist = self.scan.ranges[index]
+            print(self.radial_dist,'inside loop')
         msg.x = self.radial_dist
         msg.theta = self.obj_angle
         # print(msg)
