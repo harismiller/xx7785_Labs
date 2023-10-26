@@ -2,7 +2,6 @@ import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import LaserScan
 from geometry_msgs.msg import Pose2D,Twist
-from nav_msgs.msg import Odometry
 
 import numpy as np
 
@@ -10,13 +9,14 @@ class MoveRobot(Node):
 
     def __init__(self):
 
-        self.odom = Odometry()
+        #Variables
+        self.odom = Pose2D()
 
         super().__init__('move_robot')
 
         self._odom_subcriber = self.create_subscription(
-                Odometry,
-                '/odom',
+                Pose2D,
+                '/odomUpdate',
                 self._odom_callback,
                 5)
         

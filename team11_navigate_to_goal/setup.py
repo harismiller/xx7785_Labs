@@ -21,7 +21,8 @@ setup(
     entry_points={
         'console_scripts': [
             'getObjectRange = team11_navigate_to_goal.getObjectRange:main',
-            'goToGoal = team11_navigate_to_goal.goToGoal:main'
+            'goToGoal = team11_navigate_to_goal.goToGoal:main',
+            'printFixedOdometry = team11_navigate_to_goal.printFixedOdometry:main'
         ],
     },
 )
