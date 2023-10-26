@@ -12,6 +12,7 @@ class MoveRobot(Node):
 
         #Variables
         self.odom = Pose2D()
+        self.waypts = np.matrix('1.5 0; 1.5 1.4; 0 1.4')
 
         super().__init__('move_robot')
 
