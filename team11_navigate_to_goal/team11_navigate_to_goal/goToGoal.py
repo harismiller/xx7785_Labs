@@ -4,6 +4,7 @@ from sensor_msgs.msg import LaserScan
 from geometry_msgs.msg import Pose2D,Twist
 
 import numpy as np
+import math
 
 class MoveRobot(Node):
 
@@ -39,6 +40,9 @@ class MoveRobot(Node):
     def _odom_callback(self, odom):
         self.odom = odom
 
+    def cartToRadVel(xvel,yvel):
+        ang = math.atan2(yvel,xvel)
+        return ang
 
 def main():
     rclpy.init()

@@ -24,13 +24,13 @@ class PrintTransformedOdom(Node):
             Odometry,
             '/odom',
             self.odom_callback,
-            1)
+            10)
         self.odom_sub  # prevent unused variable warning
 
         self.odom_pub = self.create_publisher(
-            Odometry,
+            Pose2D,
             '/odomUpdate',
-            1)
+            10)
         self.odom_pub
 
     def odom_callback(self, data):
