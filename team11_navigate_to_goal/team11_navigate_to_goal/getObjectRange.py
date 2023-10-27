@@ -32,7 +32,7 @@ class ObjectFinder(Node):
         self._location_publish = self.create_publisher(
                 Point,
                 '/obsLocation',
-                5)
+                10)
         
     def pose_callback(self,pose):
         self.robot_pose = pose
