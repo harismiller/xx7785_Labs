@@ -12,11 +12,11 @@ class MoveRobot(Node):
 
         #Variables
         self.odom = Pose2D()
-        self.waypts = np.array([[1.5, 0], [1.5, 1.4], [0, 1.4]])
-        self.dstar = 0.3
-        self.qstar = 1
-        self.zeta = 0.8
-        self.neta = 0.8
+        self.waypts = np.array([[3, 0]])
+        self.dstar = 5
+        self.qstar = 5
+        self.zeta = 1
+        self.neta = 1
         self.reached_threshold = 0.05
         self.current_wp_index = 0
 
@@ -50,23 +50,26 @@ class MoveRobot(Node):
             curr_pos = [self.odom.x,self.odom.y]
             dist_to_goal = np.sqrt((curr_pos[0]-goal[0])**2+(curr_pos[1]-goal[1])**2)
             if dist_to_goal>self.dstar:
-                xa,ya = -1*self.dstar*self.zeta*(curr_pos-goal)/dist_to_goal
+                xa,ya = -self.dstar*self.zeta*(curr_pos-goal)/dist_to_goal
             else:
-                xa,ya = -5.0*self.zeta*(curr_pos-goal)
+                xa,ya = -self.zeta*(np.array(curr_pos)-np.array(goal))
             xr = []
             yr = []
-            dist_to_obstacle,closest_point = point.z,[point.x,point.y]
+            dist_to_obstacle = point.z
+            closest_point = [point.x,point.y]
             if dist_to_obstacle<self.qstar:
                 # print('ons_in_con')
                 coeff = -self.neta*(dist_to_obstacle-self.qstar)/((dist_to_obstacle**4)*self.qstar)
                 # print(coeff,'coef')
-                xrg,yrg = coeff*(curr_pos-closest_point)
+                xrg,yrg = coeff*(np.array(curr_pos)-np.array(closest_point))
             else:
                 xrg,yrg = 0,0
             xr.append(xrg)
             yr.append(yrg)
             xr = np.array(xr)
             yr = np.array(yr)
+            print(xa,ya,'attraction')
+            print(xr,yr,'repultion')
             xut = xa+np.sum(xr)
             yut = ya+np.sum(yr)
             xu = xut/np.sqrt(xut**2+yut**2)
@@ -86,7 +89,7 @@ class MoveRobot(Node):
                 else:
                     ang_vel = self.MAX_ANG
             msg.angular.z = ang_vel
-
+            print(msg.linear.x,msg.angular.z,'linear-angular')
             if dist_to_goal<self.reached_threshold:
                 self.current_wp_index+=1
         else:
