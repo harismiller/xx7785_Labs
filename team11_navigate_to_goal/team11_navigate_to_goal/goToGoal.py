@@ -20,6 +20,9 @@ class MoveRobot(Node):
         self.reached_threshold = 0.05
         self.current_wp_index = 0
 
+        self.MAX_LIN = 0.2
+        self.MAX_ANG = 1.5
+
         super().__init__('move_robot')
 
         self._odom_subcriber = self.create_subscription(
@@ -70,11 +73,19 @@ class MoveRobot(Node):
             yu = yut/np.sqrt(xut**2+yut**2)
 
             xpos = curr_pos[0]
-            ypos = curr_pos[0]
+            ypos = curr_pos[1]
+            xu = xu*self.MAX_LIN
+            yu = yu*self.MAX_LIN
             lin_vel = (xpos*xu + ypos*yu)/np.sqrt(xpos**2 + ypos**2)
-            msg.linear.x = lin_vel*0.2
+            msg.linear.x = lin_vel
+            # ang_vel = math.atan2(yu,xu)
             ang_vel = (xpos*yu - ypos*xu)/(xpos**2 + ypos**2)
-            msg.angular.z = ang_vel*1.5
+            if np.abs(ang_vel)>self.MAX_ANG:
+                if ang_vel < 0:
+                    ang_vel = -self.MAX_ANG
+                else:
+                    ang_vel = self.MAX_ANG
+            msg.angular.z = ang_vel
 
             if dist_to_goal<self.reached_threshold:
                 self.current_wp_index+=1
