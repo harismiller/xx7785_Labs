@@ -12,7 +12,7 @@ import time
 class ObjectFinder(Node):
 
     def __init__(self):
-        
+        time.sleep(2)
         self.obj_angle = 0.0
         self.scan = LaserScan()
         self.scan.ranges = [0.0]*360
