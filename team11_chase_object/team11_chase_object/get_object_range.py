@@ -57,7 +57,7 @@ class ObjectFinder(Node):
             print(self.radial_dist,'inside loop')
         msg.x = self.radial_dist
         msg.theta = self.obj_angle
-        # print(msg)
+        print(msg)
         self._location_publish.publish(msg)
 
     def _finder_callback(self, scan):

@@ -58,7 +58,7 @@ class ObjectFinder(Node):
         # Calculate the global X and Y coordinates of the point
         msg.x = self.robot_pose.x + min_dist * np.cos(global_angle_rad)
         msg.y = self.robot_pose.y + min_dist * np.sin(global_angle_rad)
-        # print(msg.x,msg.y,min_dist)
+        print(msg.x,msg.y,min_dist)
         msg.z = min_dist
         self._location_publish.publish(msg)
 

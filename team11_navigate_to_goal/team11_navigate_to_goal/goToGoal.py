@@ -13,17 +13,19 @@ class MoveRobot(Node):
         time.sleep(2)
         #Variables
         self.odom = Pose2D()
-        self.waypts = np.array([[1.6,0.0],[1.6, 1.5],[0, 1.5]])
-        self.dstar = 5
-        self.qstar = 0.01
+        self.waypts = np.array([[1.7, 0],[1.75, 1.5],[0.1, 1.6]])
+        self.dstar = 0.2
+        self.qstar = 0.4
         self.zeta = 1
-        self.neta = 1
+        self.neta = 0.01
         self.reached_threshold = 0.05
         self.current_wp_index = 0
-        self.prev_ang_vel = 0
+        self.ang_thresh_active = False
 
         self.MAX_LIN = 0.2
         self.MAX_ANG = 1.5
+        self.ANGLE_THRESHOLD = math.radians(170)
+        self.MIN_DIST_ANG_THRESH = 0.4
 
         super().__init__('move_robot')
 
@@ -44,6 +46,16 @@ class MoveRobot(Node):
                 '/cmd_vel',
                 10)
         
+    def normalize_vector(self,vector):
+        return vector / np.linalg.norm(vector)
+
+    def get_angle(self,xa,ya,xr,yr):
+        v1 = np.array([xa,ya])
+        v2 = np.array([xr,yr])
+        v1_n = self.normalize_vector(v1)
+        v2_n = self.normalize_vector(v2)
+        return np.arccos(np.clip(np.dot(v1_n, v2_n), -1.0, 1.0)),v1_n,v2_n
+        
     def _move_callback(self, point):
         msg = Twist()
         if self.current_wp_index < len(self.waypts):
@@ -52,7 +64,7 @@ class MoveRobot(Node):
             curr_pos = [self.odom.x,self.odom.y]
             dist_to_goal = np.sqrt((curr_pos[0]-goal[0])**2+(curr_pos[1]-goal[1])**2)
             if dist_to_goal>self.dstar:
-                xa,ya = -self.dstar*self.zeta*(curr_pos-goal)/dist_to_goal
+                xa,ya = -self.dstar*self.zeta*(np.array(curr_pos)-np.array(goal))/dist_to_goal
             else:
                 xa,ya = -self.zeta*(np.array(curr_pos)-np.array(goal))
             xr = []
@@ -70,40 +82,34 @@ class MoveRobot(Node):
             yr.append(yrg)
             xr = np.array(xr)
             yr = np.array(yr)
-            # print(xa,ya,'attraction')
-            # print(xr,yr,'repultion')
+            print(xa,ya,'attraction')
+            print(xr,yr,'repultion')
             xut = xa+np.sum(xr)
             yut = ya+np.sum(yr)
             xu = xut/np.sqrt(xut**2+yut**2)
             yu = yut/np.sqrt(xut**2+yut**2)
-            orientation = self.odom.theta
-            print(xu,yu,'xuyubefore')
-            # print(orientation,'orientation')
-            # xu = xu*np.cos(orientation)+yu*np.sin(orientation)
-            # yu = -xu*np.sin(orientation)+yu*np.cos(orientation)
+            angle,a_n,r_n = self.get_angle(xa,ya,xr[0],yr[0])
+            # print(a_n,r_n)
+            # if dist_to_obstacle<self.MIN_DIST_ANG_THRESH:
+            if angle>self.ANGLE_THRESHOLD:
+                print('angle_thresh active')
+                if self.ang_thresh_active==False:
+                    net_vec = np.add(a_n,r_n)
+                    # print(net_vec)
+                    self.net_vec_n = self.normalize_vector(net_vec)
+                xu = self.net_vec_n[0]
+                yu = self.net_vec_n[1]
+                self.ang_thresh_active = True
+            else:
+                self.ang_thresh_active = False
 
-            xpos = curr_pos[0]+0.001
-            ypos = curr_pos[1]
-            # xu = xu*self.MAX_LIN
-            # yu = yu*self.MAX_LIN
-            # print(xu,yu,'xuyu')
-            # lin_vel = (xpos*xu + ypos*yu)/np.sqrt(xpos**2 + ypos**2)
-            lin_vel = 0.15*np.linalg.norm([xu,yu])
+            orientation = self.odom.theta
+            print(xu,yu,'xuyu_before')
+            lin_vel = self.MAX_LIN*(xu*np.cos(orientation)+yu*np.sin(orientation))
+            ang_vel = self.MAX_ANG*(yu*np.cos(orientation)-xu*np.sin(orientation))
+            # if lin_vel<0.0:
+                # lin_vel=0.0
             msg.linear.x = lin_vel
-            ang_vel = math.atan2(yu,xu)+np.pi
-            ang_vel = 0.8*(ang_vel-orientation)
-            print(math.atan2(yu,xu)-orientation,'target_angle_turn')
-            # if np.abs(ang_vel)<0.05:
-                # print('anglular velocity does become zerooooooooooooooooo')
-            # ang_vel = (xpos*yu - ypos*xu)/(xpos**2 + ypos**2)
-            if np.abs(ang_vel)>self.MAX_ANG:
-                if ang_vel < 0:
-                    ang_vel = -self.MAX_ANG
-                else:
-                    ang_vel = self.MAX_ANG
-            if np.abs(ang_vel-self.prev_ang_vel) > 0.5:
-                ang_vel = self.prev_ang_vel+0.3*ang_vel
-            self.prev_ang_vel = ang_vel
             msg.angular.z = ang_vel
             print(msg.linear.x,msg.angular.z,'linear-angular')
             if dist_to_goal<self.reached_threshold:
