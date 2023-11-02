@@ -26,6 +26,7 @@ class MoveRobot(Node):
         self.MAX_ANG = 1.5
         self.ANGLE_THRESHOLD = math.radians(170)
         self.MIN_DIST_ANG_THRESH = 0.4
+        self.wait_count = 20
 
         super().__init__('move_robot')
 
@@ -58,7 +59,11 @@ class MoveRobot(Node):
         
     def _move_callback(self, point):
         msg = Twist()
-        if self.current_wp_index < len(self.waypts):
+        if self.wait_count >0:
+            msg.linear.x = 0.0
+            msg.angular.z = 0.0
+            self.wait_count = self.wait_count - 1
+        elif self.current_wp_index < len(self.waypts):
             goal = self.waypts[self.current_wp_index]
             #determine waypoint based on your algo
             curr_pos = [self.odom.x,self.odom.y]
@@ -115,6 +120,7 @@ class MoveRobot(Node):
             if dist_to_goal<self.reached_threshold:
                 print('wp_changed_yayayayayayayayayayayayayayayayayayayayayayayayayayayayayayayaya')
                 self.current_wp_index+=1
+                self.wait_count = 5
         else:
             msg.linear.x = 0.0
             msg.angular.z = 0.0
