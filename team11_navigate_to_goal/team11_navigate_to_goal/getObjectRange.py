@@ -40,12 +40,13 @@ class ObjectFinder(Node):
     def _finder_callback(self, scan):
         msg = Point()
         # print(scan.ranges[350])
+        delta_angle = scan.angle_increment
         scan = np.array(scan.ranges)
         # print(np.shape(scan))
         # print(scan[350])
         min_dist = float(np.nanmin(scan))
         # print(min_dist)
-        min_angle_local = np.nanargmin(scan)*1.5
+        min_angle_local = np.nanargmin(scan)*np.rad2deg(delta_angle)
         # Convert the robot's orientation to radians
         robot_orientation_rad = self.robot_pose.theta
 
