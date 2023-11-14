@@ -22,10 +22,11 @@ class NavigateToGoal(Node):
         self.goal = PoseStamped()
         self.goal.header.stamp.sec = 0
         self.goal.header.stamp.nanosec = 0
-        self.goal.pose.orientation.x = 0
-        self.goal.pose.orientation.y = 0
-        self.goal.pose.orientation.z = 0
-        self.goal.pose.orientation.w = 0
+        self.goal.header.frame_id = 'map'
+        self.goal.pose.orientation.x = 0.0
+        self.goal.pose.orientation.y = 0.0
+        self.goal.pose.orientation.z = 0.0
+        self.goal.pose.orientation.w = 1.0
 
         ## Test Waypoint
         
@@ -35,13 +36,13 @@ class NavigateToGoal(Node):
         self._goal_subscriber = self.create_subscription(
                 PointStamped,
                 '/clicked_point',
-                self._clicked_callback,
+                self._goal_callback,
                 10
         )
         self._pose_subscriber = self.create_subscription(
                 PoseStamped,
                 'NavigateToPose_FeedbackMessage',
-                self._pose_callback,
+                self._goal_callback,
                 10
         )
         self._goal_publisher = self.create_publisher(
@@ -49,14 +50,18 @@ class NavigateToGoal(Node):
                 '/goal_pose',
                 10
         )
+        # self._goal_callback()
+
     
     def _clicked_callback(self,clicked):
         self.clicked_goal = clicked
+        # print(self.clicked_goal)
 
     def _pose_callback(self,pose):
         self.curr_pose = pose
 
-    def _goal_callback(self):
+    def _goal_callback(self,clicked):
+        self.clicked_goal = clicked
         msg = self.goal
         x = float()
         y = float()
@@ -74,11 +79,11 @@ class NavigateToGoal(Node):
         msg.pose.position.y = y
         msg.pose.position.z = z
 
-        goal_check_x = np.abs(x - self.curr_pose.pose.position.x) < 0.001
-        goal_check_y = np.abs(y - self.curr_pose.pose.position.y) < 0.001
-        
+        goal_check_x = np.abs(x - self.curr_pose.pose.position.x) < 0.01
+        goal_check_y = np.abs(y - self.curr_pose.pose.position.y) < 0.01
+        print(msg)
         if goal_check_x and goal_check_y:
-            if not self.USE_CLICKED_GOAL and self.goal_ind < self.num_goals-1:
+            if (not self.USE_CLICKED_GOAL) and (self.goal_ind < self.num_goals-1):
                 self._goal_publisher.publish(msg)
                 self.goal_ind += 1
         else:
@@ -88,8 +93,14 @@ class NavigateToGoal(Node):
         
 
 def main():
-    print('Hi from team11_navstack.')
+    rclpy.init()
+    navigate_to_goal = NavigateToGoal()
 
+    while rclpy.ok():
+        rclpy.spin_once(navigate_to_goal)
+    
+    navigate_to_goal.destroy_node()
+    rclpy.shutdown()
 
 if __name__ == '__main__':
     main()

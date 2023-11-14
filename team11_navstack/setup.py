@@ -20,7 +20,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'send_point = team11_navstack.navigate_to_goal:main'
+            'navigate_to_goal = team11_navstack.navigate_to_goal:main'
         ],
     },
 )
