@@ -36,7 +36,7 @@ class NavigateToGoal(Node):
         self._goal_subscriber = self.create_subscription(
                 PointStamped,
                 '/clicked_point',
-                self._goal_callback,
+                self._clicked_callback,
                 10
         )
         self._pose_subscriber = self.create_subscription(
@@ -50,7 +50,8 @@ class NavigateToGoal(Node):
                 '/goal_pose',
                 10
         )
-        # self._goal_callback()
+        timer_period = 0.5  # seconds
+        self.timer = self.create_timer(timer_period, self._goal_callback)
 
     
     def _clicked_callback(self,clicked):
@@ -60,8 +61,7 @@ class NavigateToGoal(Node):
     def _pose_callback(self,pose):
         self.curr_pose = pose
 
-    def _goal_callback(self,clicked):
-        self.clicked_goal = clicked
+    def _goal_callback(self):
         msg = self.goal
         x = float()
         y = float()
