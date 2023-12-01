@@ -1,6 +1,6 @@
 import rclpy
 from rclpy.node import Node
-from geometry_msgs.msg import PoseStamped,PointStamped
+from geometry_msgs.msg import PoseStamped,PointStamped,Point
 from nav2_msgs.action._navigate_to_pose import NavigateToPose_FeedbackMessage
 
 import numpy as np
@@ -45,6 +45,12 @@ class NavigateToGoal(Node):
                 self._goal_callback,
                 10
         )
+        self._sign_subscriber = self.create_subscription(
+                Point,
+                '/sign',
+                self._sign_callback,
+                10
+        )
         self._goal_publisher = self.create_publisher(
                 PoseStamped,
                 '/goal_pose',
@@ -60,6 +66,9 @@ class NavigateToGoal(Node):
 
     def _pose_callback(self,pose):
         self.curr_pose = pose
+
+    def _sign_callback(self,sign):
+        self.sign_type = int(sign.x)
 
     def _goal_callback(self):
         msg = self.goal

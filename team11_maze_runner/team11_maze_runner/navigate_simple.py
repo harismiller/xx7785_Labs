@@ -2,7 +2,7 @@
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import LaserScan
-from geometry_msgs.msg import Pose2D,Twist
+from geometry_msgs.msg import Pose2D,Twist,Point
 
 import numpy as np
 
@@ -20,11 +20,20 @@ class MoveRobot(Node):
                 '/wallLocation',
                 self._chase_callback,
                 10)
+        self._sign_subscriber = self.create_subscription(
+                Point,
+                '/sign',
+                self._sign_callback,
+                10
+        )
         self._vel_publish = self.create_publisher(
                 Twist,
                 '/cmd_vel',
                 5)
     
+    def _sign_callback(self,sign):
+        self.sign_type = int(sign.x)
+
     def _chase_callback(self, pose):
         msg = Twist()
         r = pose.x
