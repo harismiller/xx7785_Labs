@@ -36,7 +36,7 @@ class DetectSign(Node):
 
     def _image_callback(self, CompressedImage):	
 		# The "CompressedImage" is transformed to a color image in BGR space and is store in "_imgBGR"
-        self._imgBGR = CvBridge().compressed_imgmsg_to_cv2(CompressedImage, "bgr8")
+        self._imgBGR = CvBridge().compressed_imgmsg_to_cv2(CompressedImage, "rgb8")
         
         sign_type = 0
         msg = Point()

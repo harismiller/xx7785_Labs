@@ -1,67 +1,70 @@
+#!/usr/bin/python
 import rclpy
 from rclpy.node import Node
-from rclpy.qos import QoSProfile, QoSDurabilityPolicy, QoSReliabilityPolicy, QoSHistoryPolicy
 from sensor_msgs.msg import LaserScan
-from geometry_msgs.msg import Pose2D,Point
+from geometry_msgs.msg import Point,Pose2D
+from rclpy.qos import QoSProfile, QoSDurabilityPolicy, QoSReliabilityPolicy, QoSHistoryPolicy
 
 import numpy as np
 import math
+import time
 
 class WallFinder(Node):
 
     def __init__(self):
+        time.sleep(2)
+        self.obj_angle = 0.0
+        self.scan = LaserScan()
+        self.scan.ranges = [0.0]*360
+        # self.scan = scan
+        self.radial_dist = 5.0
+        # self.DEFAULT_RADIAL_DIST = 0.0
+
         super().__init__('wall_finder')
+        #Set up QoS Profiles for passing images over WiFi
         scan_qos_profile = QoSProfile(
 		    reliability=QoSReliabilityPolicy.BEST_EFFORT,
 		    history=QoSHistoryPolicy.KEEP_LAST,
 		    durability=QoSDurabilityPolicy.VOLATILE,
 		    depth=1
 		)
-        self._pose_subscriber = self.create_subscription(
-            Pose2D,
-            '/odomUpdate',
-            self.pose_callback,
-            10
-        )
+
         self._scan_subcriber = self.create_subscription(
                 LaserScan,
                 '/scan',
                 self._finder_callback,
                 scan_qos_profile)
-        
-        self._location_publish = self.create_publisher(
+        # time.sleep(2)
+        self._sign_subscriber = self.create_subscription(
                 Point,
-                '/wallLocation',
+                '/sign',
+                self._point_callback,
                 10)
-        
-    def pose_callback(self,pose):
-        self.robot_pose = pose
+        self._location_publish = self.create_publisher(
+                Pose2D,
+                '/wallLocation',
+                5)
+    
+    def _point_callback(self, point):
+        ##### Change this for angle #####
+        self.obj_angle = math.atan2(point.x,250)
+        print(point.x,self.obj_angle)
+        #################################
+        msg = Pose2D()
+        index = int((self.obj_angle+(2*math.pi))%(2*math.pi))
+        print(index)
+        # radial_dist = self.DEFAULT_RADIAL_DIST
+        if not math.isnan(self.scan.ranges[index]):
+            self.radial_dist = self.scan.ranges[index]
+            print(self.radial_dist,'inside loop')
+        msg.x = self.radial_dist
+        msg.theta = self.obj_angle
+        print(msg)
+        self._location_publish.publish(msg)
 
     def _finder_callback(self, scan):
-        msg = Point()
-        # print(scan.ranges[350])
-        delta_angle = scan.angle_increment
-        scan = np.array(scan.ranges)
-        # print(np.shape(scan))
-        # print(scan[350])
-        min_dist = float(np.nanmin(scan))
-        # print(min_dist)
-        min_angle_local = np.nanargmin(scan)*np.rad2deg(delta_angle)
-        # Convert the robot's orientation to radians
-        robot_orientation_rad = self.robot_pose.theta
-
-        # Convert the local angle to radians
-        angle_rad = np.deg2rad(min_angle_local)
-
-        # Calculate the global angle by adding the robot's orientation
-        global_angle_rad = robot_orientation_rad + angle_rad
-        # print(min_dist,min_angle_local,angle_rad,global_angle_rad)
-        # Calculate the global X and Y coordinates of the point
-        msg.x = self.robot_pose.x + min_dist * np.cos(global_angle_rad)
-        msg.y = self.robot_pose.y + min_dist * np.sin(global_angle_rad)
-        print(msg.x,msg.y,min_dist)
-        msg.z = min_dist
-        self._location_publish.publish(msg)
+        self.scan = scan
+        
 
 def main():
     rclpy.init()

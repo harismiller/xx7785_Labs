@@ -20,12 +20,6 @@ class MoveRobot(Node):
                 '/wallLocation',
                 self._chase_callback,
                 10)
-        self._sign_subscriber = self.create_subscription(
-                Point,
-                '/sign',
-                self._sign_callback,
-                10
-        )
         self._vel_publish = self.create_publisher(
                 Twist,
                 '/cmd_vel',
