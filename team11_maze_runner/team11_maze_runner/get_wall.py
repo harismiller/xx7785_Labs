@@ -49,19 +49,15 @@ class WallFinder(Node):
         self.sign_type = int(sign.x)
 
     def _point_callback(self, point):
-        ##### Change this for angle #####
-        self.obj_angle = math.atan2(point.x,250)
-        print(point.x,self.obj_angle)
-        #################################
         msg = Pose2D()
-        index = int((self.obj_angle+(2*math.pi))%(2*math.pi))
-        print(index)
-        # radial_dist = self.DEFAULT_RADIAL_DIST
-        if not math.isnan(self.scan.ranges[index]):
-            self.radial_dist = self.scan.ranges[index]
-            print(self.radial_dist,'inside loop')
-        msg.x = self.radial_dist
-        msg.theta = self.obj_angle
+        angle_range = [0,1,2,-2,-1]
+        delta_angle = self.scan.angle_increment
+        filter_ranges = np.array(self.scan.ranges)[angle_range]
+        min_angle = angle_range[np.argmin(filter_ranges)]
+        min_angle_rad = delta_angle*min_angle
+        min_distance = np.min(filter_ranges)
+        msg.x = min_distance
+        msg.theta = min_angle_rad
         print(msg)
         self._location_publish.publish(msg)
 
