@@ -24,7 +24,8 @@ setup(
             'navigate_maze = team11_maze_runner.navigate_maze:main',
             'detect_sign = team11_maze_runner.detect_sign:main',
             'navigate_simple = team11_maze_runner.navigate_simple:main',
-            'print_odometry = team11_maze_runner.print_odometry:main'
+            'print_odometry = team11_maze_runner.print_odometry:main',
+            'navigate_pf = team11_maze_runner.navigate_pf:main'
         ],
     },
 )

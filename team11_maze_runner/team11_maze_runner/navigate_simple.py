@@ -24,9 +24,6 @@ class MoveRobot(Node):
                 Twist,
                 '/cmd_vel',
                 5)
-    
-    def _sign_callback(self,sign):
-        self.sign_type = int(sign.x)
 
     def _chase_callback(self, pose):
         msg = Twist()

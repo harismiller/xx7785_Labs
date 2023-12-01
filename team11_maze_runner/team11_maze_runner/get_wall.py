@@ -32,19 +32,22 @@ class WallFinder(Node):
         self._scan_subcriber = self.create_subscription(
                 LaserScan,
                 '/scan',
-                self._finder_callback,
+                self._point_callback,
                 scan_qos_profile)
         # time.sleep(2)
         self._sign_subscriber = self.create_subscription(
                 Point,
                 '/sign',
-                self._point_callback,
+                self._sign_callback,
                 10)
         self._location_publish = self.create_publisher(
                 Pose2D,
                 '/wallLocation',
                 5)
     
+    def _sign_callback(self,sign):
+        self.sign_type = int(sign.x)
+
     def _point_callback(self, point):
         ##### Change this for angle #####
         self.obj_angle = math.atan2(point.x,250)
