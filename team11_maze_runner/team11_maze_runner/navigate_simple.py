@@ -31,37 +31,43 @@ class MoveRobot(Node):
         # print(r,'goal_dist')
         theta = pose.theta
 
-        # Angular Controller
-        Kp_ang = 1.5
-        e_ang = np.abs(theta)
-        u_ang = Kp_ang*e_ang
-
-        if pose.theta > 0.08:
-            msg.angular.z = u_ang*-1
-        elif pose.theta < -0.08:
-            msg.angular.z = u_ang*1
-        else:
-            msg.angular.z = 0.0
-
-        # Linear Controller
+        # Controller Gains
+        Kp_ang = 0.45
         Kp_lin = 1.5 - np.sqrt(e_ang)
         Kd_lin = 0.01
         Tf = 0.1
-        stop_pt = 0.30
+
+        # Switch linear and angular modes
+        stop_pt = 0.40
         e_lin  = r - stop_pt
-        # print(e_lin,'dist_error')
-        u_lin = Kp_lin*e_lin + Kd_lin * (e_lin-self.e_lin_prev)/Tf
-        # print(e_lin,u_lin, 'dist_error & linear_u')
-        
-        if np.abs(u_lin) > 0.15:
-            if u_lin>0:
-                msg.linear.x = 0.15
-            else:
-                msg.linear.x = -0.15
-        elif np.abs(e_lin) > 0.025:
-            msg.linear.x = u_lin
+        e_ang = np.abs(theta)
+        if e_lin < 0.01 and e_ang > 0.03:
+
+            u_ang = Kp_ang*e_ang
+
+            if pose.theta > 0.03:
+                msg.angular.z = u_ang*-1
+            elif pose.theta < -0.03:
+                msg.angular.z = u_ang*1
         else:
-            msg.linear.x = 0.0
+            u_ang = Kp_ang*e_ang
+
+            if pose.theta > 0.03:
+                msg.angular.z = u_ang*-1
+            elif pose.theta < -0.03:
+                msg.angular.z = u_ang*1
+            else:
+                msg.angular.z = 0.0
+
+            u_lin = Kp_lin*e_lin + Kd_lin * (e_lin-self.e_lin_prev)/Tf
+            
+            if np.abs(u_lin) > 0.15:
+                if u_lin>0:
+                    msg.linear.x = 0.15
+                else:
+                    msg.linear.x = -0.15
+            else:
+                msg.linear.x = u_lin
 
         self.e_lin_prev = e_lin
 
