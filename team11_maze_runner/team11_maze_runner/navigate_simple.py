@@ -70,6 +70,7 @@ class MoveRobot(Node):
         stop_pt = 0.40
         
         if self.e_lin < 0.01:
+            print('turning only')
             if self.target_orient_flag:
                 target_orient = self.robot_pose.theta+self.sign_value
             e_ang = target_orient-self.robot_pose.theta
@@ -82,9 +83,10 @@ class MoveRobot(Node):
             # self.target_orient_flag = False
             msg.linear.x = 0.0
             msg.angular.z = u_ang
-            if e_ang<0.034:
+            if np.abs(e_ang)<0.034:
                 self.e_lin  = r - stop_pt
         else:
+            print('moving ahead')
             self.e_lin  = r - stop_pt
             self.target_orient_flag = True
             e_ang = np.abs(theta)
@@ -108,8 +110,8 @@ class MoveRobot(Node):
                 msg.linear.x = u_lin
 
         self.e_lin_prev = self.e_lin
-
-        print(msg.linear.x,'linear_vel')
+        print(self.e_lin,e_ang,'errors')
+        # print(msg.linear.z,'linear_vel')
         self._vel_publish.publish(msg)
 
 def main():
