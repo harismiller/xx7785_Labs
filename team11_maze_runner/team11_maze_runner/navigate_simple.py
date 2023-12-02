@@ -44,13 +44,16 @@ class MoveRobot(Node):
         if self.sign_type == 0:
             self.sign_value = 0
         elif self.sign_type == 1:
-            self.sign_value = np.deg2rad(90)
+            self.sign_value = np.deg2rad(87)
         elif self.sign_type == 2:
-            self.sign_value = -np.deg2rad(90)
+            self.sign_value = -np.deg2rad(87)
         elif self.sign_type == 3 or self.sign_type == 4:
-            self.sign_value = np.deg2rad(180)
+            self.sign_value = np.deg2rad(174)
         else:
             self.sign_value = 0
+
+    def convert_to_360(self, angle):
+        return (angle+2*np.pi)%(2*np.pi)
 
     def _odom_callback(self,pose):
         self.robot_pose = pose
@@ -62,19 +65,26 @@ class MoveRobot(Node):
         theta = pose.theta
 
         # Controller Gains
-        Kp_ang = 0.45
+        Kp_ang = 1
         Kd_lin = 0.01
         Tf = 0.1
 
         # Switch linear and angular modes
-        stop_pt = 0.40
+        stop_pt = 0.50
         
         if self.e_lin < 0.01:
             print('turning only')
             if self.target_orient_flag:
-                target_orient = self.robot_pose.theta+self.sign_value
-            e_ang = target_orient-self.robot_pose.theta
+                self.target_orient = self.convert_to_360(self.robot_pose.theta)+self.sign_value
+                self.target_orient_flag = False
+            e_ang = self.convert_to_360(self.target_orient)-self.convert_to_360(self.robot_pose.theta)
             u_ang = Kp_ang*e_ang
+            if u_ang > 1.5:
+                u_ang = 1.5
+            elif u_ang < -1.5:
+                u_ang = -1.5
+
+            print(self.target_orient,self.convert_to_360(self.robot_pose.theta), "angles")
 
             # if pose.theta > 0.03:
             #     msg.angular.z = u_ang*-1
@@ -92,13 +102,13 @@ class MoveRobot(Node):
             e_ang = np.abs(theta)
             u_ang = Kp_ang*e_ang
 
-            if pose.theta > 0.03:
-                msg.angular.z = u_ang*-1
-            elif pose.theta < -0.03:
+            if pose.theta > 0.017:
                 msg.angular.z = u_ang*1
+            elif pose.theta < -0.017:
+                msg.angular.z = u_ang*-1
             else:
                 msg.angular.z = 0.0
-            Kp_lin = 1.5 - np.sqrt(e_ang)
+            Kp_lin = 1
             u_lin = Kp_lin*self.e_lin + Kd_lin * (self.e_lin-self.e_lin_prev)/Tf
             
             if np.abs(u_lin) > 0.15:
