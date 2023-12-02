@@ -44,9 +44,9 @@ class MoveRobot(Node):
         if self.sign_type == 0:
             self.sign_value = 0
         elif self.sign_type == 1:
-            self.sign_value = -np.deg2rad(90)
-        elif self.sign_type == 2:
             self.sign_value = np.deg2rad(90)
+        elif self.sign_type == 2:
+            self.sign_value = -np.deg2rad(90)
         elif self.sign_type == 3 or self.sign_type == 4:
             self.sign_value = np.deg2rad(180)
         else:
@@ -63,7 +63,6 @@ class MoveRobot(Node):
 
         # Controller Gains
         Kp_ang = 0.45
-        Kp_lin = 1.5 - np.sqrt(e_ang)
         Kd_lin = 0.01
         Tf = 0.1
 
@@ -81,6 +80,8 @@ class MoveRobot(Node):
             # elif pose.theta < -0.03:
             #     msg.angular.z = u_ang*1
             # self.target_orient_flag = False
+            msg.linear.x = 0.0
+            msg.angular.z = u_ang
             if e_ang<0.034:
                 self.e_lin  = r - stop_pt
         else:
@@ -95,7 +96,7 @@ class MoveRobot(Node):
                 msg.angular.z = u_ang*1
             else:
                 msg.angular.z = 0.0
-
+            Kp_lin = 1.5 - np.sqrt(e_ang)
             u_lin = Kp_lin*self.e_lin + Kd_lin * (self.e_lin-self.e_lin_prev)/Tf
             
             if np.abs(u_lin) > 0.15:

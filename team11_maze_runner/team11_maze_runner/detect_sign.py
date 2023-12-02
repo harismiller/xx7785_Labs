@@ -13,6 +13,7 @@ import os
 import torch
 from torchvision import models, transforms
 import torch.nn as nn
+from PIL import Image
 
 class DetectSign(Node):
     
@@ -29,7 +30,8 @@ class DetectSign(Node):
         # Replace the last layer with a new Linear layer
         self.net.fc = nn.Linear(in_features=self.net.fc.in_features, out_features=num_classes)
         # Load the fine-tuned model weights
-        self.net.load_state_dict(torch.load(model_path))
+        self.net.load_state_dict(torch.load(model_path,map_location=torch.device('cpu')))
+        # self.net.to('cpu')
         self.net.eval()
 
         image_qos_profile = QoSProfile(
@@ -54,14 +56,21 @@ class DetectSign(Node):
     def _image_callback(self, CompressedImage):	
 		# The "CompressedImage" is transformed to a color image in BGR space and is store in "_imgBGR"
         imgRGB = CvBridge().compressed_imgmsg_to_cv2(CompressedImage, "rgb8")
+        # imgRGB = np.asarray(imgRGB)
+        imgRGB = Image.fromarray(imgRGB)
+        # imgRGB = torch.from_numpy(imgRGB)
+        # print(type(imgRGB))
         input_tensor = self.preprocess(imgRGB)
         # create a mini-batch as expected by the model
         input_batch = input_tensor.unsqueeze(0)
         # run model
         output = self.net(input_batch)
         sign_type = int(torch.argmax(output))
+        print(sign_type)
         msg = Point()
-        msg.x = sign_type
+        msg.x = float(sign_type)
+        self._sign_publisher.publish(msg)
+        
 
 def main():
     rclpy.init()

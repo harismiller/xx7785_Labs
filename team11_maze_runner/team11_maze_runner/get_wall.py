@@ -48,15 +48,19 @@ class WallFinder(Node):
     def _sign_callback(self,sign):
         self.sign_type = int(sign.x)
 
-    def _point_callback(self, point):
+    def _point_callback(self, scan):
+        self.scan = scan
         msg = Pose2D()
         angle_range = [0,1,2,-2,-1]
         delta_angle = self.scan.angle_increment
+        # print(np.array(self.scan.ranges)[0:2])
         filter_ranges = np.array(self.scan.ranges)[angle_range]
+        # print(filter_ranges)
         min_angle = angle_range[np.argmin(filter_ranges)]
         min_angle_rad = delta_angle*min_angle
         min_distance = np.min(filter_ranges)
-        msg.x = min_distance
+        # print(type(min_distance))
+        msg.x = float(min_distance)
         msg.theta = min_angle_rad
         print(msg)
         self._location_publish.publish(msg)
