@@ -75,7 +75,12 @@ class MoveRobot(Node):
         if self.e_lin < 0.01:
             print('turning only')
             if self.target_orient_flag:
-                self.target_orient = self.convert_to_360(self.robot_pose.theta)+self.sign_value
+                if self.sign_type==0:
+                    closest_angle = get_closest_angle()
+                    self.target_orient = self.convert_to_360(closest_angle)
+                    self.target_orient = self.convert_to_360(self.robot_pose.theta)+self.sign_value
+                else:
+                    self.target_orient = self.convert_to_360(self.robot_pose.theta)+self.sign_value
                 self.target_orient_flag = False
             e_ang = self.convert_to_360(self.target_orient)-self.convert_to_360(self.robot_pose.theta)
             u_ang = Kp_ang*e_ang
