@@ -1,6 +1,5 @@
 import rclpy
 from rclpy.node import Node
-from sensor_msgs.msg import LaserScan
 from geometry_msgs.msg import Pose2D,Twist, Point
 
 import numpy as np
@@ -10,14 +9,14 @@ import time
 class MoveRobot(Node):
 
     def __init__(self):
-        time.sleep(2)
+        # time.sleep(2)
         #Variables
         self.odom = Pose2D()
         # self.waypts = np.array([[1.7, 0]])
-        self.dstar = 0.2
-        self.qstar = 0.4
-        self.zeta = 1
-        self.neta = 0.01
+        self.dstar = 0.15 # 0.2
+        self.qstar = 0.3# 0.4
+        self.zeta = 1 # 1
+        self.neta = 0.01 # 0.01
         self.reached_threshold = 0.05
         # self.current_wp_index = 0
         self.goal_add = [0.0,0.0]
@@ -75,11 +74,11 @@ class MoveRobot(Node):
     def _sign_callback(self,sign):
         self.sign_type = int(sign.x)
         if self.sign_type == 0:
-            self.sign_value = [0,-0.3]
+            self.sign_value = [0,-0.1]
         elif self.sign_type == 1:
-            self.sign_value = [0.0,0.3]
+            self.sign_value = [0.0,0.1]
         elif self.sign_type == 2:
-            self.sign_value = [0.0,-0.3]
+            self.sign_value = [0.0,-0.1]
         elif self.sign_type == 3 or self.sign_type == 4:
             self.sign_value = [-0.5,0.0]
         else:
