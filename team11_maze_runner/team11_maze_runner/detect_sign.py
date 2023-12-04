@@ -24,7 +24,7 @@ class DetectSign(Node):
             transforms.ToTensor(),
             transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
         ])
-        model_path = "/home/haris/xx7785_ws/src/xx7785_Labs/team11_maze_runner/team11_maze_runner/fine_tuned_shufflenet.pth"
+        model_path = "/home/atharva/courses/irr_ws/src/xx7785_Lab2/team11_maze_runner/team11_maze_runner/fine_tuned_shufflenet.pth"
         self.net = models.shufflenet_v2_x0_5(pretrained=False)
         num_classes = 6
         # Replace the last layer with a new Linear layer

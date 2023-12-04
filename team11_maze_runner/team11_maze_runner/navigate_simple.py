@@ -17,11 +17,6 @@ class MoveRobot(Node):
 
         super().__init__('move_robot')
 
-        self._pose_subscriber = self.create_subscription(
-                Pose2D,
-                '/wallLocation',
-                self._chase_callback,
-                10)
         self._odom_subscriber = self.create_subscription(
             Pose2D,
             '/odomUpdate',
@@ -34,6 +29,11 @@ class MoveRobot(Node):
             self._sign_callback,
             10
         )
+        self._pose_subscriber = self.create_subscription(
+                Pose2D,
+                '/wallLocation',
+                self._chase_callback,
+                10)
         self._vel_publish = self.create_publisher(
                 Twist,
                 '/cmd_vel',
@@ -58,6 +58,14 @@ class MoveRobot(Node):
     def _odom_callback(self,pose):
         self.robot_pose = pose
 
+    def get_closest_angle(self):
+        current_orient = self.convert_to_360(self.robot_pose.theta)
+        quotient = current_orient // np.deg2rad(45)
+        if quotient%2==0:
+            return quotient*np.deg2rad(45)
+        else:
+            return quotient*np.deg2rad(45)+np.deg2rad(45)
+
     def _chase_callback(self, pose):
         msg = Twist()
         r = pose.x
@@ -75,7 +83,13 @@ class MoveRobot(Node):
         if self.e_lin < 0.01:
             print('turning only')
             if self.target_orient_flag:
-                self.target_orient = self.convert_to_360(self.robot_pose.theta)+self.sign_value
+                if self.sign_type==0:
+                    if self.convert_to_360(self.robot_pose.theta)%(np.pi/2)<np.deg2rad(3):
+                        self.target_orient = self.convert_to_360(self.robot_pose.theta)-np.deg2rad(90)
+                    else:
+                        self.target_orient = self.get_closest_angle()
+                else:
+                    self.target_orient = self.convert_to_360(self.robot_pose.theta)+self.sign_value
                 self.target_orient_flag = False
             e_ang = self.convert_to_360(self.target_orient)-self.convert_to_360(self.robot_pose.theta)
             u_ang = Kp_ang*e_ang
